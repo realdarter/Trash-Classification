@@ -3,3 +3,7 @@ A Image Classification Model that identifies different types of materials in tra
 
 This Trash-Classification will use images and some code sourced from Kaggle:
 https://www.kaggle.com/datasets/asdasdasasdas/garbage-classification 
+
+The frontend will use HTML and Javascript
+
+The backend will use Python
