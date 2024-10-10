@@ -1,5 +1,5 @@
 #Large Data Folder
-data/garbage_classification/*
+train_model/data/garbage_classification/*
 
 
 # Byte-compiled / optimized / DLL files
