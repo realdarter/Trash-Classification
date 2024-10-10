@@ -1,13 +1,13 @@
 import os
-base_dir = "/data/garbagedata"
+base_dir = "/data/garbage_classification"
 images_dict = {}
 image_extension = {'.jpg', '.jpeg', '.png'}
 
 folder_name = os.path.basename(base_dir)
-print(folder_name)
 
 for root, dirs, files in os.walk(base_dir):
     folder_name = os.path.basename(root)
+    print(folder_name)
 
 
 """
