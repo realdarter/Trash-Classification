@@ -1,6 +1,6 @@
 #Large Data Folder
 train_model/data/garbage_classification/*
-
+train_model/garbageMLenv
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
