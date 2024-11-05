@@ -1,18 +1,21 @@
-from image_classifier import *
+from image_classifier import *  # Ensure this imports the necessary functions and classes
 
 data_dir = 'data/garbage_classification'
-batch_size = 32  # Adjust based on your GPU memory
 model_save_path = 'checkpoint/save1'
-
-# Load the data for training
+batch_size = 100
+# Load data
 train_loader, classes = load_data(data_dir, batch_size)
 
-# Initialize and set up the model
+# Create arguments for training
+args = create_args(num_epochs=16, 
+                   batch_size=batch_size,
+                   )
+
 model = SimpleCNN(num_classes=len(classes)).to(device)
 
-# Train the model
-train_model(model_save_path, data_dir, train_loader, num_epochs=20)
+train_model(model_save_path, data_dir, train_loader, args)
 
-# Save the model and classes
 save_model(model, model_save_path, classes)
 print(f"Model saved to {model_save_path}")
+
+test_model(model_save_path, data_dir, args)
