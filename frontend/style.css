@@ -1,0 +1,167 @@
+@import url('https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700;900&display=swap');
+
+* {
+    box-sizing: border-box;
+    margin: 0px;
+    padding: 0px;
+}
+
+body {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    font-family: 'Roboto', sans-serif;
+    background-color: #ffffff;
+}
+
+.infographic-wrapper {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    width: 900px;
+    gap: 10px;
+}
+
+.infographic-items {
+    --color-main: #ffffff;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    color: #fff;
+    position: relative;
+    background-size: cover;
+    background-position: center;
+    transition: all 0.3s ease;
+    height: 300px;
+    width: 180px;
+    overflow: hidden;
+    justify-content: space-between;
+}
+
+    /* Add background images for each bin */
+    .infographic-items:nth-child(1) {
+        background-image: url('./res/metal.png');
+        --color-accent: #995ecb;
+    }
+
+    .infographic-items:nth-child(2) {
+        background-image: url('./res/paper.png');
+        --color-accent: #6da6ff;
+    }
+
+    .infographic-items:nth-child(3) {
+        background-image: url('./res/cardboard.png');
+        --color-accent: #e3bb14;
+    }
+
+    .infographic-items:nth-child(4) {
+        background-image: url('./res/plastic.png');
+        --color-accent: #fd9b3a;
+    }
+
+    .infographic-items:nth-child(5) {
+        background-image: url('./res/waste.png');
+        --color-accent: #c93912;
+    }
+
+/* Initially hide the content */
+.clip-wrapper,
+h2,
+p {
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    z-index: 2;
+}
+
+/* Show content on hover */
+.infographic-items:hover .clip-wrapper,
+.infographic-items:hover h2,
+.infographic-items:hover p {
+    opacity: 1;
+}
+
+/* Hide the bin image on hover by adding a translucent overlay */
+.infographic-items::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.7);
+    z-index: 1;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.infographic-items:hover::before {
+    opacity: 1;
+}
+
+/* Styling for the text content inside each bin card */
+.clip-wrapper {
+    width: 100%;
+    height: 100px;
+    position: relative;
+    background: linear-gradient(180deg, var(--color-main) 0%, var(--color-main) 50%, var(--color-accent) 50%, var(--color-accent) 100%);
+    z-index: 2;
+}
+
+.clip-1,
+.clip-2,
+.content {
+    position: absolute;
+    clip-path: polygon(50% 0, 100% 25%, 100% 75%, 50% 100%, 0 75%, 0 25%);
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+}
+
+.clip-1 {
+    height: 100%;
+    aspect-ratio: 1;
+    background: var(--color-main);
+    z-index: 1;
+}
+
+.clip-2 {
+    --border: 30px;
+    aspect-ratio: 1;
+    height: calc(100% - var(--border));
+    background: var(--color-accent);
+    z-index: 2;
+}
+
+.content {
+    width: 100%;
+    height: 100%;
+    z-index: 3;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+    .content i {
+        font-size: 26px;
+    }
+
+.infographic-items h2 {
+    background: var(--color-accent);
+    display: block;
+    width: 100%;
+    text-align: center;
+    font-size: 18px;
+    padding-top: 30px;
+}
+
+.infographic-items p {
+    padding: 20px;
+    background: var(--color-accent);
+    display: flex;
+    flex-grow: 1;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    font-size: 12px;
+    font-weight: 300;
+}
