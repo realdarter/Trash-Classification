@@ -1,143 +1,199 @@
 import os
 import torch
+import torchvision
+from torch.utils.data import random_split, DataLoader
 import torchvision.transforms as transforms
-from torch import nn, optim
-from torch.utils.data import DataLoader, random_split
+import torch.nn.functional as F
+import torch.nn as nn
+import torchvision.models as models
 from torchvision.datasets import ImageFolder
-from torchvision.models import resnet18  # Example model
+from torchvision.utils import make_grid
+from PIL import Image
+import matplotlib.pyplot as plt
 
-def create_args(num_epochs=1, batch_size=32, learning_rate=5e-5, 
-                image_size=(224, 224), validation_split=0.2):
-    return {
-        "num_epochs": num_epochs,
-        "batch_size": batch_size,
-        "learning_rate": learning_rate,
-        "image_size": image_size,
-        "validation_split": validation_split
-    }
+data_dir = 'data/garbage_classification'
+classes = os.listdir(data_dir)
 
-def train_model(data_dir, model_dir, args):
-    # Set device
-    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+# Define transformations for the images
+transformations = transforms.Compose([transforms.Resize((256, 256)), transforms.ToTensor()])
 
-    # Define data transformations
-    transform = transforms.Compose([
-        transforms.Resize(args["image_size"]),
-        transforms.ToTensor()
-    ])
+# Load the dataset
+dataset = ImageFolder(data_dir, transform=transformations)
 
-    # Load the dataset
-    dataset = ImageFolder(root=data_dir, transform=transform)
 
-    # Print classes and number of images in each class
-    class_counts = {class_name: 0 for class_name in dataset.classes}
+# Helper function to show an image sample
+def show_sample(img, label, dataset):
+    print("Label:", dataset.classes[label], "(Class No: "+ str(label) + ")")
+    plt.imshow(img.permute(1, 2, 0))
+
+
+# Define accuracy functions
+def accuracy(outputs, labels):
+    _, preds = torch.max(outputs, dim=1)
+    return torch.tensor(torch.sum(preds == labels).item() / len(preds))
+
+def top_k_accuracy(outputs, labels, k=5):
+    _, top_k_preds = torch.topk(outputs, k, dim=1)
+    correct = top_k_preds.eq(labels.view(-1, 1).expand_as(top_k_preds))
+    return torch.tensor(correct.any(dim=1).float().mean().item())
+
+
+# Base model class
+class ImageClassificationBase(nn.Module):
     
-    for _, label in dataset:
-        class_name = dataset.classes[label]
-        class_counts[class_name] += 1
-
-    print("Classes and number of images in each class:")
-    for class_name, count in class_counts.items():
-        print(f"{class_name}: {count} images")
-
-    num_samples = len(dataset)
-    num_val_samples = int(num_samples * args["validation_split"])
-    num_train_samples = num_samples - num_val_samples
+    def training_step(self, batch):
+        images, labels = batch 
+        out = self(images)
+        loss = F.cross_entropy(out, labels)
+        return loss
     
-    train_dataset, val_dataset = random_split(dataset, [num_train_samples, num_val_samples])
-    
-    train_loader = DataLoader(train_dataset, batch_size=args["batch_size"], shuffle=True)
-    val_loader = DataLoader(val_dataset, batch_size=args["batch_size"], shuffle=False)
-
-    # Initialize model
-    model = resnet18(pretrained=False, num_classes=1).to(device)  # Set num_classes to 1
-
-    # Check if model exists and load it
-    model_path = os.path.join(model_dir, 'model.pth')
-    if os.path.exists(model_path):
-        model.load_state_dict(torch.load(model_path))
-        print("Loaded existing model from disk.")
-    else:
-        print("No existing model found. Starting training from scratch.")
-
-    # Define loss function and optimizer
-    criterion = nn.BCEWithLogitsLoss()  # Use binary cross-entropy loss for a single class
-    optimizer = optim.Adam(model.parameters(), lr=args["learning_rate"])
-
-    # Training loop
-    for epoch in range(args["num_epochs"]):
-        model.train()  # Set the model to training mode
-        running_loss = 0.0
-        correct = 0
-        total = 0
-
-        # Inside your training loop
-        for images, labels in train_loader:
-            images, labels = images.to(device), labels.to(device).float()  # Convert labels to float for BCE
-
-            # Zero the parameter gradients
-            optimizer.zero_grad()
-
-            # Forward pass
-            outputs = model(images).squeeze()  # Squeeze to remove extra dimensions
-
-            # Debugging output
-            print(f"Outputs: {outputs}")  # Check raw logits
-            print(f"Labels: {labels}")      # Check labels
-
-            loss = criterion(outputs, labels)
-
-            # Check loss value
-            print(f"Loss: {loss.item()}")  # Should be a positive value
-
-            # Backward pass and optimization
-            loss.backward()
-            optimizer.step()
-
-        # Calculate average loss and accuracy
-        avg_loss = running_loss / len(train_loader)
-        if total > 0:
-            accuracy = 100 * correct / total
-        else:
-            accuracy = 0.0  # or some other value that makes sense in your context
-
+    def validation_step(self, batch):
+        images, labels = batch 
+        out = self(images)
+        loss = F.cross_entropy(out, labels)
+        acc_top1 = accuracy(out, labels)
+        acc_top5 = top_k_accuracy(out, labels, k=5)
+        return {'val_loss': loss.detach(), 'val_acc_top1': acc_top1, 'val_acc_top5': acc_top5}
         
-        # Validation loop
-        model.eval()  # Set the model to evaluation mode
-        val_loss = 0.0
-        correct = 0
-        total = 0
+    def validation_epoch_end(self, outputs):
+        batch_losses = [x['val_loss'] for x in outputs]
+        epoch_loss = torch.stack(batch_losses).mean()
+        batch_acc_top1 = [x['val_acc_top1'] for x in outputs]
+        epoch_acc_top1 = torch.stack(batch_acc_top1).mean()
+        batch_acc_top5 = [x['val_acc_top5'] for x in outputs]
+        epoch_acc_top5 = torch.stack(batch_acc_top5).mean()
+        return {'val_loss': epoch_loss.item(), 'val_acc_top1': epoch_acc_top1.item(), 'val_acc_top5': epoch_acc_top5.item()}
+    
+    def epoch_end(self, epoch, result):
+        print("Epoch {}: train_loss: {:.4f}, val_loss: {:.4f}, val_acc_top1: {:.4f}, val_acc_top5: {:.4f}".format(
+            epoch+1, result['train_loss'], result['val_loss'], result['val_acc_top1'], result['val_acc_top5']))
 
-        with torch.no_grad():
-            for images, labels in val_loader:
-                images, labels = images.to(device), labels.to(device).float()
-                outputs = model(images).squeeze()
-                loss = criterion(outputs, labels)
-                val_loss += loss.item()
 
-                predicted = (torch.sigmoid(outputs) > 0.5).float()
-                total += labels.size(0)
-                correct += (predicted == labels).sum().item()
+# Define the ResNet model
+class ResNet(ImageClassificationBase):
+    def __init__(self, num_classes):
+        super().__init__()
+        self.network = models.resnet50(pretrained=True)
+        num_ftrs = self.network.fc.in_features
+        self.network.fc = nn.Linear(num_ftrs, num_classes)
+    
+    def forward(self, xb):
+        return torch.softmax(self.network(xb), dim=1)
 
-        val_loss /= len(val_loader)
-        val_accuracy = 100 * correct / total
-        print(f"Epoch [{epoch + 1}/{args['num_epochs']}], Loss: {avg_loss:.4f}, Accuracy: {accuracy:.2f}%, "
-              f"Validation Loss: {val_loss:.4f}, Validation Accuracy: {val_accuracy:.2f}%")
 
-    # Save the model once at the end of training
-    torch.save(model.state_dict(), model_path)
-    print("Training complete. Model saved.")
+# Device management functions
+def get_default_device():
+    return torch.device('cuda') if torch.cuda.is_available() else torch.device('cpu')
 
-def load_model(model_dir):
-    model = resnet18(pretrained=False, num_classes=1)  # Set num_classes to 1
-    model.load_state_dict(torch.load(os.path.join(model_dir, 'model.pth')))
+def to_device(data, device):
+    if isinstance(data, (list,tuple)):
+        return [to_device(x, device) for x in data]
+    return data.to(device, non_blocking=True)
+
+class DeviceDataLoader:
+    def __init__(self, dl, device):
+        self.dl = dl
+        self.device = device
+        
+    def __iter__(self):
+        for b in self.dl: 
+            yield to_device(b, self.device)
+
+    def __len__(self):
+        return len(self.dl)
+
+
+# Model saving and loading functions
+def save_model(model, path='saved_models', filename='model.pth'):
+    os.makedirs(path, exist_ok=True)
+    torch.save(model.state_dict(), os.path.join(path, filename))
+    print(f"Model saved to {os.path.join(path, filename)}")
+
+def load_model(model, path='saved_models', filename='model.pth'):
+    model.load_state_dict(torch.load(os.path.join(path, filename), map_location=get_default_device()))
+    print(f"Model loaded from {os.path.join(path, filename)}")
     return model
 
-# Example usage
-if __name__ == "__main__":
-    data_dir = "data/garbage_classification"  # Make sure this folder has your image
-    model_dir = "checkpoint/save1"
-    os.makedirs(model_dir, exist_ok=True)
 
-    args = create_args(num_epochs=30, batch_size=32, learning_rate=1e-5)
-    train_model(data_dir, model_dir, args)
+# Training and evaluation functions
+@torch.no_grad()
+def evaluate(model, val_loader):
+    model.eval()
+    outputs = [model.validation_step(batch) for batch in val_loader]
+    return model.validation_epoch_end(outputs)
+
+def fit(epochs, lr, model, train_loader, val_loader, opt_func=torch.optim.SGD):
+    history = []
+    optimizer = opt_func(model.parameters(), lr)
+    for epoch in range(epochs):
+        model.train()
+        train_losses = []
+        for batch in train_loader:
+            loss = model.training_step(batch)
+            train_losses.append(loss)
+            loss.backward()
+            optimizer.step()
+            optimizer.zero_grad()
+        
+        result = evaluate(model, val_loader)
+        result['train_loss'] = torch.stack(train_losses).mean().item()
+        model.epoch_end(epoch, result)
+        history.append(result)
+    return history
+
+
+# Top-k prediction function for a single image
+def predict_top_k(img_path, model, transformations, k=5, device=None):
+    if device is None:
+        device = get_default_device()
+    
+    image = Image.open(img_path).convert('RGB')
+    image_transformed = transformations(image)
+    image_transformed = to_device(image_transformed.unsqueeze(0), device)
+
+    model.eval()
+    with torch.no_grad():
+        output = model(image_transformed)
+        probabilities = torch.softmax(output, dim=1)
+        top_probs, top_k_preds = torch.topk(probabilities, k, dim=1)
+    
+    top_k_labels = [dataset.classes[idx] for idx in top_k_preds[0].tolist()]
+    top_k_probs = top_probs[0].tolist()
+    
+    plt.figure(figsize=(6, 6))
+    plt.imshow(image)
+    plt.title(f"Top-{k} Predictions:\n" + "\n".join([f"{label}: {prob*100:.2f}%" for label, prob in zip(top_k_labels, top_k_probs)]))
+    plt.axis('off')
+    plt.show()
+    return top_k_labels, top_k_probs
+
+
+if __name__ == '__main__':
+    random_seed = 42
+    torch.manual_seed(random_seed)
+    train_ds, val_ds, test_ds = random_split(dataset, [1593, 176, 758])
+    batch_size = 32
+    train_dl = DataLoader(train_ds, batch_size, shuffle=True, num_workers=0, pin_memory=True)
+    val_dl = DataLoader(val_ds, batch_size*2, num_workers=0, pin_memory=True)
+    
+    device = get_default_device()
+    train_dl = DeviceDataLoader(train_dl, device)
+    val_dl = DeviceDataLoader(val_dl, device)
+
+    # Initialize model, move to device, and start training
+    model = ResNet(num_classes=len(classes))
+    model = to_device(model, device)
+    num_epochs = 10
+    opt_func = torch.optim.Adam
+    lr = 1.0e-5
+    history = fit(num_epochs, lr, model, train_dl, val_dl, opt_func)
+
+    # Save the model
+    save_model(model)
+
+    # Load the model (for testing)
+    model = load_model(model)
+    
+    # Test Top-k prediction
+    test_image_path = 'test_image.jpg'  # Replace with your image path
+    predict_top_k(test_image_path, model, transformations, k=5, device=device)
