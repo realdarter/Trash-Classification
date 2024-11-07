@@ -174,9 +174,8 @@ def create_args(num_epochs=1, batch_size=32, learning_rate=1e-5, save_every=500,
     }
 
 # Top-k prediction function for a single image
-def predict_top_k(img_path, model, transformations, args, device=None):
-    if device is None:
-        device = get_default_device()
+def predict_images(img_path, model, args):
+    device = get_default_device()
     
     image = Image.open(img_path).convert('RGB')
     image_transformed = transformations(image)
@@ -199,21 +198,20 @@ def predict_top_k(img_path, model, transformations, args, device=None):
     return top_k_labels, top_k_probs
 
 def train(data_dir=None, model_dir=None, args=create_args()):
+    device = get_default_device()
+
     classes = os.listdir(data_dir)
     dataset = ImageFolder(data_dir, transform=transformations)
-
     train_ds, val_ds, test_ds = random_split(dataset, [1593, 176, 758])
     train_dl = DataLoader(train_ds, args["batch_size"], shuffle=True, num_workers=0, pin_memory=True)
     val_dl = DataLoader(val_ds, args["batch_size"] * 2, num_workers=0, pin_memory=True)
-    device = get_default_device()
     train_dl = DeviceDataLoader(train_dl, device)
     val_dl = DeviceDataLoader(val_dl, device)
     model = load_or_initialize_model(num_classes=len(classes), path=model_dir)
     model = to_device(model, device)
-    opt_func = torch.optim.Adam
-    history = fit(args, model, train_dl, val_dl, opt_func)
+    #opt_func = torch.optim.Adam
+    #history = fit(args, model, train_dl, val_dl, opt_func)
     save_model(model, path=model_dir)
-
 
 
 if __name__ == '__main__':
