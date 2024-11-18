@@ -5,11 +5,13 @@ from torch.utils.data import random_split, DataLoader
 import torchvision.transforms as transforms
 import torch.nn.functional as F
 import torch.nn as nn
-import torchvision.models as models
 from torchvision.datasets import ImageFolder
 from torchvision.utils import make_grid
 from PIL import Image
 import matplotlib.pyplot as plt
+from torchvision import models
+from torchvision.models import ResNet50_Weights
+
 
 torch.manual_seed(42)
 transformations = transforms.Compose([transforms.Resize((256, 256)), transforms.ToTensor()])
@@ -66,13 +68,13 @@ class ImageClassificationBase(nn.Module):
 class ResNet(ImageClassificationBase):
     def __init__(self, num_classes):
         super().__init__()
-        self.network = models.resnet50(pretrained=True)
-        num_ftrs = self.network.fc.in_features
-        self.network.fc = nn.Linear(num_ftrs, num_classes)
+        self.network = models.resnet50(weights=ResNet50_Weights.IMAGENET1K_V1)  # Use pretrained weights
+        num_ftrs = self.network.fc.in_features  # Get the number of features from the last fully connected layer
+        print(f'num_ftrs: {num_ftrs}, num_classes: {num_classes}')
+        self.network.fc = nn.Linear(num_ftrs, num_classes)  # Modify the output layer to match the number of classes
     
     def forward(self, xb):
         return torch.softmax(self.network(xb), dim=1)
-
 
 # Device management functions
 def get_default_device():
@@ -95,24 +97,77 @@ class DeviceDataLoader:
     def __len__(self):
         return len(self.dl)
 
+def save_metadata(epoch, classes, path='saved_models', filename='metadata.txt'):
+    os.makedirs(path, exist_ok=True)
+    metadata_path = os.path.join(path, filename)
+    with open(metadata_path, 'w') as f:
+        f.write(f"Epoch: {epoch}\n")
+        f.write("Classes:\n")
+        for cls in classes:
+            f.write(f"{cls}\n")
+    print(f"Metadata saved to {metadata_path}")
+
+def load_metadata(path='saved_models', filename='metadata.txt'):
+    metadata_path = os.path.join(path, filename)
+    if not os.path.exists(metadata_path):
+        print("Metadata file not found.")
+        return None, None
+    with open(metadata_path, 'r') as f:
+        lines = f.readlines()
+        epoch = int(lines[0].split(":")[1].strip())
+        classes = [line.strip() for line in lines[2:]]
+    print(f"Metadata loaded from {metadata_path}")
+    return epoch, classes
+
 
 # Model saving and loading functions
-def save_model(model, path='saved_models', filename='model.pth'):
+def save_model(model, path='saved_models', filename='model.pth', epoch=0, classes=None):
     os.makedirs(path, exist_ok=True)
-    torch.save(model.state_dict(), os.path.join(path, filename))
-    print(f"Model saved to {os.path.join(path, filename)}")
-
-def load_or_initialize_model(num_classes, path='saved_models', filename='model.pth'):
-    model = ResNet(num_classes)
     model_path = os.path.join(path, filename)
-    if os.path.exists(model_path):
+    torch.save(model.state_dict(), model_path)
+    metadata_path = os.path.join(path, "metadata.txt")
+    with open(metadata_path, "w") as f:
+        f.write(f"epoch: {epoch}\n")
+        f.write(f"classes: {','.join(classes)}\n")
+    print(f"Model and metadata saved to {path}")
+
+def check_if_model_exists(path):
+    model_path = os.path.join(path, 'model.pth')  # Path to the model file
+    metadata_path = os.path.join(path, 'metadata.txt')  # Path to the metadata file
+    return os.path.exists(model_path) and os.path.exists(metadata_path)
+
+def load_model(path='saved_models', filename='model.pth'):
+    if not check_if_model_exists(path):
+        print("Model doesnt exist cant load")
+    
+    model_path = os.path.join(path, filename)
+    metadata_path = os.path.join(path, "metadata.txt")
+
+    if os.path.exists(model_path) and os.path.exists(metadata_path):
+        
+
+        # Load metadata
+        with open(metadata_path, "r") as f:
+            lines = f.readlines()
+            epoch = int(lines[0].split(":")[1].strip())
+            classes = lines[1].split(":")[1].strip().split(',')
+
+        print(f"Metadata loaded: Epoch {epoch}, Classes: {classes}")
+        model = ResNet(num_classes=len(classes)) 
         model.load_state_dict(torch.load(model_path, map_location=get_default_device()))
         print(f"Model loaded from {model_path}")
-    else:
-        print("Pretrained model not found. Initializing a new model.")
-        save_model(model, path, filename)
-    return model
 
+        return model, epoch, classes
+    else:
+        print("Pretrained model not found.")
+        return None, 0, []
+
+def initialize_model(num_classes, path='saved_models', filename='model.pth'):
+    model = ResNet(num_classes)
+    epoch, classes = 0, []
+    print("Initializing a new model.")
+    save_model(model, path, filename, epoch, classes)
+    return model, epoch, classes
 
 # Training and evaluation functions
 @torch.no_grad()
@@ -173,31 +228,8 @@ def create_args(num_epochs=1, batch_size=32, learning_rate=1e-5, save_every=500,
         "repetition_penalty": repetition_penalty
     }
 
-# Top-k prediction function for a single image
-def predict_images(img_path, model, args):
-    device = get_default_device()
-    
-    image = Image.open(img_path).convert('RGB')
-    image_transformed = transformations(image)
-    image_transformed = to_device(image_transformed.unsqueeze(0), device)
 
-    model.eval()
-    with torch.no_grad():
-        output = model(image_transformed)
-        probabilities = torch.softmax(output, dim=1)
-        top_probs, top_k_preds = torch.topk(probabilities, args['top_k'], dim=1)
-    
-    top_k_labels = [dataset.classes[idx] for idx in top_k_preds[0].tolist()]
-    top_k_probs = top_probs[0].tolist()
-    
-    plt.figure(figsize=(6, 6))
-    plt.imshow(image)
-    plt.title(f"Top-{args['top_k']} Predictions:\n" + "\n".join([f"{label}: {prob*100:.2f}%" for label, prob in zip(top_k_labels, top_k_probs)]))
-    plt.axis('off')
-    plt.show()
-    return top_k_labels, top_k_probs
-
-def train(data_dir=None, model_dir=None, args=create_args()):
+def train(data_dir=None, model_dir=None, args=create_args(), file_name='model.pth'):
     device = get_default_device()
 
     classes = os.listdir(data_dir)
@@ -207,19 +239,60 @@ def train(data_dir=None, model_dir=None, args=create_args()):
     val_dl = DataLoader(val_ds, args["batch_size"] * 2, num_workers=0, pin_memory=True)
     train_dl = DeviceDataLoader(train_dl, device)
     val_dl = DeviceDataLoader(val_dl, device)
-    model = load_or_initialize_model(num_classes=len(classes), path=model_dir)
-    model = to_device(model, device)
-    #opt_func = torch.optim.Adam
-    #history = fit(args, model, train_dl, val_dl, opt_func)
-    save_model(model, path=model_dir)
+    model, epoch = None, None
 
+    if not check_if_model_exists(model_dir):
+        print("Model doesnt exist. Creating a new model!")
+        model, epoch, classes = initialize_model(len(classes), path=model_dir)
+    else:
+        print("Found Model loading model")
+        model, epoch, classes = load_model(model_dir, filename=file_name)
+    model = to_device(model, device)
+    opt_func = torch.optim.Adam
+    history = fit(args, model, train_dl, val_dl, opt_func)
+    save_model(model, args["num_epochs"], classes, path=model_dir)
+
+# Top-k prediction function for a single image
+def predict_images(img_path, model, classes, transformations, args):
+    device = get_default_device()
+    
+    model = to_device(model, device)
+    
+    if not classes:
+        print("Class labels not found in metadata.")
+        return
+    
+    # Preprocess the image
+    image = Image.open(img_path).convert('RGB')
+    image_transformed = transformations(image)
+    image_transformed = to_device(image_transformed.unsqueeze(0), device)
+
+    # Perform prediction
+    model.eval()
+    with torch.no_grad():
+        output = model(image_transformed)
+        probabilities = torch.softmax(output, dim=1)
+        top_probs, top_k_preds = torch.topk(probabilities, args['top_k'], dim=1)
+    
+    # Get the top-k predictions
+    top_k_labels = [classes[idx] for idx in top_k_preds[0].tolist()]
+    top_k_probs = top_probs[0].tolist()
+    
+    # Display the image and prediction results
+    plt.figure(figsize=(6, 6))
+    plt.imshow(image)
+    plt.title(f"Top-{args['top_k']} Predictions:\n" + "\n".join([f"{label}: {prob*100:.2f}%" for label, prob in zip(top_k_labels, top_k_probs)]))
+    plt.axis('off')
+    plt.show()
+    
+    return top_k_labels, top_k_probs
 
 if __name__ == '__main__':
     data_dir = 'data/garbage_classification'
     model_dir = 'saved_models'
 
     args = create_args(
-        num_epochs=1, 
+        num_epochs=6, 
         batch_size=32, 
         learning_rate=1e-5, 
         save_every=500, 
@@ -232,7 +305,7 @@ if __name__ == '__main__':
     
     train(data_dir=data_dir, model_dir=model_dir, args=args)
 
-
+    model, start_epoch, classes = load_model(model_dir)
     # Test Top-k prediction
-    #test_image_path = r'C:\Users\minec\Downloads\test\metal.jpg'  # Replace with your image path
-    #predict_top_k(test_image_path, model, transformations, args, device=device)
+    test_image_path = r'C:\Users\minec\Downloads\test\metal.jpg'  # Replace with your image path
+    predict_images(test_image_path, model, classes, transformations, args)
