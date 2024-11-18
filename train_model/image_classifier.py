@@ -8,7 +8,6 @@ import torch.nn as nn
 from torchvision.datasets import ImageFolder
 from torchvision.utils import make_grid
 from PIL import Image
-#import matplotlib.pyplot as plt
 from torchvision import models
 from torchvision.models import ResNet50_Weights
 
@@ -296,4 +295,4 @@ if __name__ == '__main__':
     model, epoch, classes = load_model(model_dir)
     # Test Top-k prediction
     test_image_path = r'C:\Users\minec\Downloads\test\metal.jpg'
-    predict_images(test_image_path, model, classes, transformations, args)
+    predict_images(test_image_path, model, classes, args)
