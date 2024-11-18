@@ -12,7 +12,7 @@ def choose_image():
     )
     return img_path
 
-model_dir = 'saved_models'
+model_dir = 'saved_models/save1'
 
 args = create_args(
         num_epochs=2, 
