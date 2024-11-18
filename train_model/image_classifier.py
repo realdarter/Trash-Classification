@@ -8,7 +8,7 @@ import torch.nn as nn
 from torchvision.datasets import ImageFolder
 from torchvision.utils import make_grid
 from PIL import Image
-import matplotlib.pyplot as plt
+#import matplotlib.pyplot as plt
 from torchvision import models
 from torchvision.models import ResNet50_Weights
 
@@ -16,10 +16,6 @@ from torchvision.models import ResNet50_Weights
 torch.manual_seed(42)
 transformations = transforms.Compose([transforms.Resize((256, 256)), transforms.ToTensor()])
 
-# Helper function to show an image sample
-def show_sample(img, label, dataset):
-    print("Label:", dataset.classes[label], "(Class No: "+ str(label) + ")")
-    plt.imshow(img.permute(1, 2, 0))
 
 
 # Define accuracy functions
@@ -176,7 +172,7 @@ def evaluate(model, val_loader):
     outputs = [model.validation_step(batch) for batch in val_loader]
     return model.validation_epoch_end(outputs)
 
-def fit(args, model, train_loader, val_loader, opt_func=torch.optim.SGD):
+def fit(args, model, model_dir, classes, train_loader, val_loader, opt_func=torch.optim.SGD, current_epochs=0):
     history = []
     optimizer = opt_func(model.parameters(), args['learning_rate'])
     for epoch in range(args['num_epochs']):
@@ -188,10 +184,12 @@ def fit(args, model, train_loader, val_loader, opt_func=torch.optim.SGD):
             loss.backward()
             optimizer.step()
             optimizer.zero_grad()
-
+        
         result = evaluate(model, val_loader)
         result['train_loss'] = torch.stack(train_losses).mean().item()
         model.epoch_end(epoch, result)
+        print(f"classes: {classes}")
+        save_model(model=model, path=model_dir, epoch=(current_epochs + epoch + 1), classes=classes)
         history.append(result)
     return history
 
@@ -239,18 +237,18 @@ def train(data_dir=None, model_dir=None, args=create_args(), file_name='model.pt
     val_dl = DataLoader(val_ds, args["batch_size"] * 2, num_workers=0, pin_memory=True)
     train_dl = DeviceDataLoader(train_dl, device)
     val_dl = DeviceDataLoader(val_dl, device)
-    model, epoch = None, None
+    model, epoch = None, 0
 
     if not check_if_model_exists(model_dir):
         print("Model doesnt exist. Creating a new model!")
-        model, epoch, classes = initialize_model(len(classes), path=model_dir)
+        model, _, _ = initialize_model(len(classes), path=model_dir)
     else:
         print("Found Model loading model")
         model, epoch, classes = load_model(model_dir, filename=file_name)
     model = to_device(model, device)
     opt_func = torch.optim.Adam
-    history = fit(args, model, train_dl, val_dl, opt_func)
-    save_model(model, args["num_epochs"], classes, path=model_dir)
+    history = fit(args, model, model_dir, classes, train_dl, val_dl, opt_func)
+    return history
 
 # Top-k prediction function for a single image
 def predict_images(img_path, model, classes, transformations, args):
@@ -262,29 +260,19 @@ def predict_images(img_path, model, classes, transformations, args):
         print("Class labels not found in metadata.")
         return
     
-    # Preprocess the image
     image = Image.open(img_path).convert('RGB')
     image_transformed = transformations(image)
     image_transformed = to_device(image_transformed.unsqueeze(0), device)
 
-    # Perform prediction
     model.eval()
     with torch.no_grad():
         output = model(image_transformed)
         probabilities = torch.softmax(output, dim=1)
         top_probs, top_k_preds = torch.topk(probabilities, args['top_k'], dim=1)
     
-    # Get the top-k predictions
     top_k_labels = [classes[idx] for idx in top_k_preds[0].tolist()]
     top_k_probs = top_probs[0].tolist()
-    
-    # Display the image and prediction results
-    plt.figure(figsize=(6, 6))
-    plt.imshow(image)
-    plt.title(f"Top-{args['top_k']} Predictions:\n" + "\n".join([f"{label}: {prob*100:.2f}%" for label, prob in zip(top_k_labels, top_k_probs)]))
-    plt.axis('off')
-    plt.show()
-    
+
     return top_k_labels, top_k_probs
 
 if __name__ == '__main__':
@@ -292,7 +280,7 @@ if __name__ == '__main__':
     model_dir = 'saved_models'
 
     args = create_args(
-        num_epochs=6, 
+        num_epochs=2, 
         batch_size=32, 
         learning_rate=1e-5, 
         save_every=500, 
@@ -304,8 +292,8 @@ if __name__ == '__main__':
         )
     
     train(data_dir=data_dir, model_dir=model_dir, args=args)
-
-    model, start_epoch, classes = load_model(model_dir)
+    #12 epochs (sweetspot for now)
+    model, epoch, classes = load_model(model_dir)
     # Test Top-k prediction
-    test_image_path = r'C:\Users\minec\Downloads\test\metal.jpg'  # Replace with your image path
+    test_image_path = r'C:\Users\minec\Downloads\test\metal.jpg'
     predict_images(test_image_path, model, classes, transformations, args)

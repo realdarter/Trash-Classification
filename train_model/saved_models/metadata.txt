@@ -1,2 +1,2 @@
-epoch: 0
-classes: 
+epoch: 2
+classes: cardboard,glass,metal,paper,plastic,trash
