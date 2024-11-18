@@ -1,7 +1,7 @@
 from image_classifier import *  # Ensure this imports the necessary functions and classes
 
 data_dir = 'data/garbage_classification'
-model_dir = 'saved_models'
+model_dir = 'saved_models/save1'
 
 args = create_args(
     num_epochs=2, 
