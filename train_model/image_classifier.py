@@ -64,10 +64,10 @@ class ImageClassificationBase(nn.Module):
 class ResNet(ImageClassificationBase):
     def __init__(self, num_classes):
         super().__init__()
-        self.network = models.resnet50(weights=ResNet50_Weights.IMAGENET1K_V1)  # Use pretrained weights
-        num_ftrs = self.network.fc.in_features  # Get the number of features from the last fully connected layer
+        self.network = models.resnet50(weights=ResNet50_Weights.IMAGENET1K_V1)
+        num_ftrs = self.network.fc.in_features
         print(f'num_ftrs: {num_ftrs}, num_classes: {num_classes}')
-        self.network.fc = nn.Linear(num_ftrs, num_classes)  # Modify the output layer to match the number of classes
+        self.network.fc = nn.Linear(num_ftrs, num_classes)
     
     def forward(self, xb):
         return torch.softmax(self.network(xb), dim=1)
@@ -128,8 +128,8 @@ def save_model(model, path='saved_models', filename='model.pth', epoch=0, classe
     print(f"Model and metadata saved to {path}")
 
 def check_if_model_exists(path):
-    model_path = os.path.join(path, 'model.pth')  # Path to the model file
-    metadata_path = os.path.join(path, 'metadata.txt')  # Path to the metadata file
+    model_path = os.path.join(path, 'model.pth')
+    metadata_path = os.path.join(path, 'metadata.txt')
     return os.path.exists(model_path) and os.path.exists(metadata_path)
 
 def load_model(path='saved_models', filename='model.pth'):
@@ -251,7 +251,7 @@ def train(data_dir=None, model_dir=None, args=create_args(), file_name='model.pt
     return history
 
 # Top-k prediction function for a single image
-def predict_images(img_path, model, classes, transformations, args):
+def predict_images(img_path, model, classes, args):
     device = get_default_device()
     
     model = to_device(model, device)
