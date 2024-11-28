@@ -25,7 +25,9 @@ args = create_args(
         top_p=0.9, 
         repetition_penalty=1.0
         )
-
+# basically using the while loop. May not work if image path is different from the image itself.
+def predictImage(image):
+    return predict_images(image, model=model, classes=classes, args=args)
 model, epoch, classes = load_model(model_dir)
 while True:
     #test_image_path = r'C:\Users\minec\Downloads\test\metal.jpg'
