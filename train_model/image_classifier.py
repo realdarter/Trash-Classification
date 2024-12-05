@@ -8,20 +8,19 @@ import torch.nn as nn
 from torchvision.datasets import ImageFolder
 from torchvision.utils import make_grid
 from PIL import Image
-#import matplotlib.pyplot as plt
+# import matplotlib.pyplot as plt
 from torchvision import models
 from torchvision.models import ResNet50_Weights
 
-
 torch.manual_seed(42)
 transformations = transforms.Compose([transforms.Resize((256, 256)), transforms.ToTensor()])
-
 
 
 # Define accuracy functions
 def accuracy(outputs, labels):
     _, preds = torch.max(outputs, dim=1)
     return torch.tensor(torch.sum(preds == labels).item() / len(preds))
+
 
 def top_k_accuracy(outputs, labels, k=5):
     _, top_k_preds = torch.topk(outputs, k, dim=1)
@@ -31,21 +30,21 @@ def top_k_accuracy(outputs, labels, k=5):
 
 # Base model class
 class ImageClassificationBase(nn.Module):
-    
+
     def training_step(self, batch):
-        images, labels = batch 
+        images, labels = batch
         out = self(images)
         loss = F.cross_entropy(out, labels)
         return loss
-    
+
     def validation_step(self, batch):
-        images, labels = batch 
+        images, labels = batch
         out = self(images)
         loss = F.cross_entropy(out, labels)
         acc_top1 = accuracy(out, labels)
         acc_top5 = top_k_accuracy(out, labels, k=5)
         return {'val_loss': loss.detach(), 'val_acc_top1': acc_top1, 'val_acc_top5': acc_top5}
-        
+
     def validation_epoch_end(self, outputs):
         batch_losses = [x['val_loss'] for x in outputs]
         epoch_loss = torch.stack(batch_losses).mean()
@@ -53,11 +52,12 @@ class ImageClassificationBase(nn.Module):
         epoch_acc_top1 = torch.stack(batch_acc_top1).mean()
         batch_acc_top5 = [x['val_acc_top5'] for x in outputs]
         epoch_acc_top5 = torch.stack(batch_acc_top5).mean()
-        return {'val_loss': epoch_loss.item(), 'val_acc_top1': epoch_acc_top1.item(), 'val_acc_top5': epoch_acc_top5.item()}
-    
+        return {'val_loss': epoch_loss.item(), 'val_acc_top1': epoch_acc_top1.item(),
+                'val_acc_top5': epoch_acc_top5.item()}
+
     def epoch_end(self, epoch, result):
         print("Epoch {}: train_loss: {:.4f}, val_loss: {:.4f}, val_acc_top1: {:.4f}, val_acc_top5: {:.4f}".format(
-            epoch+1, result['train_loss'], result['val_loss'], result['val_acc_top1'], result['val_acc_top5']))
+            epoch + 1, result['train_loss'], result['val_loss'], result['val_acc_top1'], result['val_acc_top5']))
 
 
 # Define the ResNet model
@@ -68,30 +68,34 @@ class ResNet(ImageClassificationBase):
         num_ftrs = self.network.fc.in_features
         print(f'num_ftrs: {num_ftrs}, num_classes: {num_classes}')
         self.network.fc = nn.Linear(num_ftrs, num_classes)
-    
+
     def forward(self, xb):
         return torch.softmax(self.network(xb), dim=1)
+
 
 # Device management functions
 def get_default_device():
     return torch.device('cuda') if torch.cuda.is_available() else torch.device('cpu')
 
+
 def to_device(data, device):
-    if isinstance(data, (list,tuple)):
+    if isinstance(data, (list, tuple)):
         return [to_device(x, device) for x in data]
     return data.to(device, non_blocking=True)
+
 
 class DeviceDataLoader:
     def __init__(self, dl, device):
         self.dl = dl
         self.device = device
-        
+
     def __iter__(self):
-        for b in self.dl: 
+        for b in self.dl:
             yield to_device(b, self.device)
 
     def __len__(self):
         return len(self.dl)
+
 
 def save_metadata(epoch, classes, path='saved_models', filename='metadata.txt'):
     os.makedirs(path, exist_ok=True)
@@ -102,6 +106,7 @@ def save_metadata(epoch, classes, path='saved_models', filename='metadata.txt'):
         for cls in classes:
             f.write(f"{cls}\n")
     print(f"Metadata saved to {metadata_path}")
+
 
 def load_metadata(path='saved_models', filename='metadata.txt'):
     metadata_path = os.path.join(path, filename)
@@ -127,20 +132,21 @@ def save_model(model, path='saved_models', filename='model.pth', epoch=0, classe
         f.write(f"classes: {','.join(classes)}\n")
     print(f"Model and metadata saved to {path}")
 
+
 def check_if_model_exists(path):
     model_path = os.path.join(path, 'model.pth')
     metadata_path = os.path.join(path, 'metadata.txt')
     return os.path.exists(model_path) and os.path.exists(metadata_path)
 
+
 def load_model(path='saved_models', filename='model.pth'):
     if not check_if_model_exists(path):
         print("Model doesnt exist cant load")
-    
+
     model_path = os.path.join(path, filename)
     metadata_path = os.path.join(path, "metadata.txt")
 
     if os.path.exists(model_path) and os.path.exists(metadata_path):
-        
 
         # Load metadata
         with open(metadata_path, "r") as f:
@@ -149,7 +155,7 @@ def load_model(path='saved_models', filename='model.pth'):
             classes = lines[1].split(":")[1].strip().split(',')
 
         print(f"Metadata loaded: Epoch {epoch}, Classes: {classes}")
-        model = ResNet(num_classes=len(classes)) 
+        model = ResNet(num_classes=len(classes))
         model.load_state_dict(torch.load(model_path, map_location=get_default_device()))
         print(f"Model loaded from {model_path}")
 
@@ -158,6 +164,7 @@ def load_model(path='saved_models', filename='model.pth'):
         print("Pretrained model not found.")
         return None, 0, []
 
+
 def initialize_model(num_classes, path='saved_models', filename='model.pth'):
     model = ResNet(num_classes)
     epoch, classes = 0, []
@@ -165,12 +172,14 @@ def initialize_model(num_classes, path='saved_models', filename='model.pth'):
     save_model(model, path, filename, epoch, classes)
     return model, epoch, classes
 
+
 # Training and evaluation functions
 @torch.no_grad()
 def evaluate(model, val_loader):
     model.eval()
     outputs = [model.validation_step(batch) for batch in val_loader]
     return model.validation_epoch_end(outputs)
+
 
 def fit(args, model, model_dir, classes, train_loader, val_loader, opt_func=torch.optim.SGD, current_epochs=0):
     history = []
@@ -184,7 +193,7 @@ def fit(args, model, model_dir, classes, train_loader, val_loader, opt_func=torc
             loss.backward()
             optimizer.step()
             optimizer.zero_grad()
-        
+
         result = evaluate(model, val_loader)
         result['train_loss'] = torch.stack(train_losses).mean().item()
         model.epoch_end(epoch, result)
@@ -193,10 +202,12 @@ def fit(args, model, model_dir, classes, train_loader, val_loader, opt_func=torc
         history.append(result)
     return history
 
-def create_args(num_epochs=1, batch_size=32, learning_rate=1e-5, save_every=500, max_length=256, temperature=1.0, top_k=5, top_p=0.9, repetition_penalty=1.0):
+
+def create_args(num_epochs=1, batch_size=32, learning_rate=1e-5, save_every=500, max_length=256, temperature=1.0,
+                top_k=5, top_p=0.9, repetition_penalty=1.0):
     """
     Returns a dictionary of training and evaluation arguments.
-    
+
     Args:
         num_epochs (int, optional): Number of epochs. Defaults to 1.
         batch_size (int, optional): Batch size. Defaults to 32.
@@ -250,16 +261,17 @@ def train(data_dir=None, model_dir=None, args=create_args(), file_name='model.pt
     history = fit(args, model, model_dir, classes, train_dl, val_dl, opt_func)
     return history
 
+
 # Top-k prediction function for a single image
 def predict_images(img_path, model, classes, args):
     device = get_default_device()
-    
+
     model = to_device(model, device)
-    
+
     if not classes:
         print("Class labels not found in metadata.")
         return
-    
+
     image = Image.open(img_path).convert('RGB')
     image_transformed = transformations(image)
     image_transformed = to_device(image_transformed.unsqueeze(0), device)
@@ -269,30 +281,31 @@ def predict_images(img_path, model, classes, args):
         output = model(image_transformed)
         probabilities = torch.softmax(output, dim=1)
         top_probs, top_k_preds = torch.topk(probabilities, args['top_k'], dim=1)
-    
+
     top_k_labels = [classes[idx] for idx in top_k_preds[0].tolist()]
     top_k_probs = top_probs[0].tolist()
 
     return top_k_labels, top_k_probs
+
 
 if __name__ == '__main__':
     data_dir = 'data/garbage_classification'
     model_dir = 'saved_models'
 
     args = create_args(
-        num_epochs=2, 
-        batch_size=32, 
-        learning_rate=1e-5, 
-        save_every=500, 
-        max_length=256, 
-        temperature=1.0, 
-        top_k=5, 
-        top_p=0.9, 
+        num_epochs=2,
+        batch_size=32,
+        learning_rate=1e-5,
+        save_every=500,
+        max_length=256,
+        temperature=1.0,
+        top_k=5,
+        top_p=0.9,
         repetition_penalty=1.0
-        )
-    
+    )
+
     train(data_dir=data_dir, model_dir=model_dir, args=args)
-    #12 epochs (sweetspot for now)
+    # 12 epochs (sweetspot for now)
     model, epoch, classes = load_model(model_dir)
     # Test Top-k prediction
     test_image_path = r'C:\Users\minec\Downloads\test\metal.jpg'
