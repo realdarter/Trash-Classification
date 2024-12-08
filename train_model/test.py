@@ -28,9 +28,9 @@ args = create_args(
 # basically using the while loop. May not work if image path is different from the image itself.
 def predictImage(image):
     return predict_images(image, model=model, classes=classes, args=args)
-model, epoch, classes = load_model(model_dir)
-while True:
-    #test_image_path = r'C:\Users\minec\Downloads\test\metal.jpg'
-    test_image_path = choose_image()
-    top_k_labels, top_k_probs = predict_images(img_path=test_image_path, model=model, classes=classes, args=args)
-    print(top_k_labels, top_k_probs)
+# model, epoch, classes = load_model(model_dir)
+# while True:
+#     #test_image_path = r'C:\Users\minec\Downloads\test\metal.jpg'
+#     test_image_path = choose_image()
+#     top_k_labels, top_k_probs = predict_images(img_path=test_image_path, model=model, classes=classes, args=args)
+#     print(top_k_labels, top_k_probs)
