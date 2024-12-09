@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Trash Sorter</title>
+    <link rel= "stylesheet" type= "text/css" href= "{{ url_for('static',filename='styles/style.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body>
+    <div class="container">
+    <div class="title">Traschly Model</div>
+   
+    <form action="/takeImage" method="POST" enctype="multipart/form-data">
+        
+        <label for="image">Select an image:</label>
+        <input type="file" name="image" id="image" accept="image/*" required>
+       
+        <button class="raise" type="submit">Upload</button>
+    </form>
+</div>
+    <div class="info-panel">
+        <h1>Trash Sorting: A Small Step for a Big Impact</h1>
+        <h4>Proper waste disposal is crucial for preserving our environment. Let's sort our trash responsibly and contribute to a cleaner planet.</h4>
+    </div>
+
+    <div class="infographic-wrapper">
+        <div class="infographic-items" data-image="res/metal.png">
+            <img src= "{{ url_for('static',filename='res/metal-trash.png') }}" alt="Metal Trash">
+
+            <div class="clip-wrapper">
+                <div class="clip-1"></div>
+                <div class="clip-2"></div>
+                
+                <div class="content"><i class="fa-solid fa-wine-bottle"></i></div>
+            </div>
+            <h2>Metal</h2>
+            <p>
+                Aluminum cans (e.g., soda cans)<br>
+                Tin cans (e.g., food cans)<br>
+                Metal lids and bottle caps<br>
+                Empty aerosol cans (non-toxic, non-pressurized)
+            </p>
+        </div>
+        <div class="infographic-items" data-image="res/paper.png">
+            <img src="{{ url_for('static',filename='res/cardboard-trash.png') }}" alt="Cardboard Trash">
+            <div class="clip-wrapper">
+                <div class="clip-1"></div>
+                <div class="clip-2"></div>
+                <div class="content"><i class="fa-solid fa-newspaper"></i></div>
+            </div>
+            <h2>Paper</h2>
+            <p>
+                Office paper<br>
+                Newspapers and magazines<br>
+                Junk mail and envelopes<br>
+                Books<br>
+                Paper bags
+            </p>
+        </div>
+        <div class="infographic-items" data-image="res/cardboard.png">
+            <img src="{{ url_for('static',filename='res/paper-trash.png') }}" alt="Paper Trash">
+
+            <div class="clip-wrapper">
+                <div class="clip-1"></div>
+                <div class="clip-2"></div>
+                <div class="content"><i class="fas fa-box-open"></i></div>
+            </div>
+            <h2>Cardboard</h2>
+            <p>
+                Corrugated cardboard boxes (e.g., shipping boxes)<br>
+                Paperboard (e.g., cereal boxes, tissue boxes)
+            </p>
+        </div>
+        <div class="infographic-items" data-image="res/plastic.png">
+            <img src="{{ url_for('static',filename='res/plastic-trash.png') }}" alt="Plastic Trash">
+            <div class="clip-wrapper">
+                <div class="clip-1"></div>
+                <div class="clip-2"></div>
+                <div class="content"><i class="fas fa-prescription-bottle"></i></div>
+            </div>
+            <h2>Plastic</h2>
+            <p>
+                Plastic bottles and containers<br>
+                Rigid plastic containers<br>
+                Plastic lids and caps
+            </p>
+        </div>
+        <div class="infographic-items" data-image="res/waste.png">
+            <img src="{{ url_for('static',filename='res/waste-trash.png') }}" alt="Waste Trash">
+            <div class="clip-wrapper">
+                <div class="clip-1"></div>
+                <div class="clip-2"></div>
+                <div class="content"><i class="fa-solid fa-burger"></i></div>
+            </div>
+            <h2>Waste</h2>
+            <p>
+                Food-contaminated packaging<br>
+                Non-recyclable plastics (e.g., plastic wrap, utensils, straws)<br>
+                Broken household items<br>
+                Sanitary items
+            </p>
+        </div>
+    </div>
+</body>
+</html>
