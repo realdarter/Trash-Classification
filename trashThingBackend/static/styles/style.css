@@ -1,4 +1,5 @@
-@import url('https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700;900&display=swap');
+@import url("https://fonts.googleapis.com/css2?family=Audiowide&family=Genos:ital,wght@0,100..900;1,100..900&display=swap");
+@import url("https://fonts.googleapis.com/css?family=Audiowide");
 
 * {
     box-sizing: border-box;
@@ -11,7 +12,8 @@ body {
     justify-content: center;
     align-items: center;
     min-height: 100vh;
-    font-family: 'Roboto', sans-serif;
+    font-size: 24px;
+    font-family: "Genos", sans-serif;
     background-image: url(../res/background.jpg); /* Replace with your nature-themed background */
     background-size: cover;
     background-position: center;
@@ -77,6 +79,8 @@ h1 {
     width: 180px;
     justify-content: space-between;
     margin-top: 100px; /* Add top margin to the container */
+    margin-bottom: 100px; /* Add top margin to the container */
+
 
 }
 .infographic-items img {    
@@ -206,13 +210,64 @@ p {
 }
 
 .infographic-items p {
-    padding: 20px;
     background: var(--color-accent);
     display: flex;
     flex-grow: 1;
     align-items: center;
     justify-content: center;
     text-align: center;
-    font-size: 12px;
-    font-weight: 300;
+    font-size: 15px;
+    font-weight: 500;
 }
+
+.raise:hover,
+.raise:focus, input::file-selector-button:focus, input::file-selector-button:hover{
+  box-shadow: 0 0.5em 0.5em -0.2em #ffff48;
+  transform: translateY(-0.25em);
+  border-color: #008726;
+  color: #0e8404;
+}
+.raise, input::file-selector-button{
+    background: none;
+    border: 4px solid;
+    font-size: 19px;
+    font-weight: 300;
+    line-height: 1;
+    margin: 0.2em;
+    padding: 0.75em 1.25em;
+    color: #c93912;
+    transition: 0.25s;
+
+  }
+  .title {
+    font-family: "Audiowide", sans-serif;
+    font-weight: 400;
+
+    font-size: 60px;
+    color: #016012;
+    margin: 0.2em;
+  }
+  .container label {
+    font-weight: 400;
+
+    font-size: 16px;
+    color: #016012;
+  }
+
+  .container {
+    margin: 5em;
+    padding: 25px;
+    border: 8px solid #c02020;
+    border-radius: 2px;
+    animation: neon-effect-box 1s cubic-bezier(0.94, 0.46, 0.52, 1.16) infinite
+      alternate;
+  }
+
+  @keyframes neon-effect-box {
+    from {
+      box-shadow: 0 0 0px #c02020;
+    }
+    to {
+      box-shadow: 0 0 24px #c02020;
+    }
+  }

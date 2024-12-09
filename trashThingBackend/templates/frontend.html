@@ -8,16 +8,17 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 </head>
 <body>
-    
-    <div class="info-panel">
-        <h1>Get Prediction</h1>
-        <form action="/takeImage" method="POST" enctype="multipart/form-data">
-            <label for="image">Select an image:</label>
-            <input type="file" name="image" id="image" accept="image/*" required>
-            <br><br>
-            <button type="submit">Upload</button>
-        </form>
-    </div>
+    <div class="container">
+    <div class="title">Traschly Model</div>
+   
+    <form action="/takeImage" method="POST" enctype="multipart/form-data">
+        
+        <label for="image">Select an image:</label>
+        <input type="file" name="image" id="image" accept="image/*" required>
+       
+        <button class="raise" type="submit">Upload</button>
+    </form>
+</div>
     <div class="info-panel">
         <h1>Trash Sorting: A Small Step for a Big Impact</h1>
         <h4>Proper waste disposal is crucial for preserving our environment. Let's sort our trash responsibly and contribute to a cleaner planet.</h4>
@@ -30,7 +31,8 @@
             <div class="clip-wrapper">
                 <div class="clip-1"></div>
                 <div class="clip-2"></div>
-                <div class="content"><i class="fas fa-crown"></i></div>
+                
+                <div class="content"><i class="fa-solid fa-wine-bottle"></i></div>
             </div>
             <h2>Metal</h2>
             <p>
@@ -45,7 +47,7 @@
             <div class="clip-wrapper">
                 <div class="clip-1"></div>
                 <div class="clip-2"></div>
-                <div class="content"><i class="fas fa-comments"></i></div>
+                <div class="content"><i class="fa-solid fa-newspaper"></i></div>
             </div>
             <h2>Paper</h2>
             <p>
@@ -62,7 +64,7 @@
             <div class="clip-wrapper">
                 <div class="clip-1"></div>
                 <div class="clip-2"></div>
-                <div class="content"><i class="fas fa-code"></i></div>
+                <div class="content"><i class="fas fa-box-open"></i></div>
             </div>
             <h2>Cardboard</h2>
             <p>
@@ -75,7 +77,7 @@
             <div class="clip-wrapper">
                 <div class="clip-1"></div>
                 <div class="clip-2"></div>
-                <div class="content"><i class="fas fa-map-marker-alt"></i></div>
+                <div class="content"><i class="fas fa-prescription-bottle"></i></div>
             </div>
             <h2>Plastic</h2>
             <p>
@@ -89,7 +91,7 @@
             <div class="clip-wrapper">
                 <div class="clip-1"></div>
                 <div class="clip-2"></div>
-                <div class="content"><i class="fas fa-frog"></i></div>
+                <div class="content"><i class="fa-solid fa-burger"></i></div>
             </div>
             <h2>Waste</h2>
             <p>

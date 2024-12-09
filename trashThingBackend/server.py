@@ -14,13 +14,17 @@ def index():
 
 @app.route('/takeImage', methods=['POST'])
 def takeImage():
-    # if 'image' not in request.files:
-    #     return jsonify({"no image"}), 400
-    # image = request.files['image']
-    # # hopefully returns a tuple that includes the predicted classification and the percent.
-    # prediction = predictImage(image)
-    # print(prediction)
-    return "Prediction: " + str(prediction[0]) + "Confidence: " + str(prediction[1])
+    if 'image' not in request.files:
+        return jsonify({"no image"}), 400
+    image = request.files['image']
+    # hopefully returns a tuple that includes the predicted classification and the percent.
+    prediction = predictImage(image)
+    print(prediction)
+    predict, confidence = prediction[0], prediction[1]
+    # predict, confidence = "Card", "20"
+
+    return render_template('result.html', predicted_class=predict, confidence=confidence)
+
     # return prediction
     # return "RAHHHH"
 
