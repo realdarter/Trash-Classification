@@ -9,7 +9,6 @@
             background:linear-gradient(180deg, rgba(254,255,234,1) 14%, rgba(248,255,231,1) 48%, rgba(235,248,255,1) 73%)!important;
         }
     </style>
-
     <link rel= "stylesheet" type= "text/css" href= "{{ url_for('static',filename='styles/style.css') }}">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 </head>
@@ -17,12 +16,9 @@
 <body>
     <div class="container">
     <div class="title">Traschly Model</div>
-   
     <form action="/takeImage" method="POST" enctype="multipart/form-data">
-        
         <label for="image">Select an image:</label>
         <input type="file" name="image" id="image" accept="image/*" required>
-       
         <button class="raise" type="submit">Upload</button>
     </form>
 </div>

@@ -7,7 +7,7 @@ sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '../t
 
 #from test import predictImage  # Import predictImage from test.py
 app = Flask(__name__)
-
+#API Routers
 @app.route('/')
 def index():
     return render_template('frontend.html')
