@@ -21,8 +21,7 @@ body {
     gap: 10px;
 }
 h1 {
-    font-size: 120px;
-    background: linear-gradient(to right, #1b6430, #3f93b1, #119c57, #17962e);
+    background: linear-gradient(to right, hsl(137, 57%, 25%), #3f93b1, #119c57, #17962e);
     -webkit-background-clip: text;
     background-clip: text;
     color: transparent;
@@ -39,7 +38,7 @@ h1 {
 }
 
 .info-panel h1 {
-    font-size: 60px;
+    font-size: 58px;
     margin-bottom: 10px;
 }
 
@@ -233,12 +232,16 @@ p {
     font-size: 19px;
     font-weight: 300;
     line-height: 1;
-    margin: 0.2em;
+    margin: 1em 0.2em;
     padding: 0.75em 1.25em;
     color: #c93912;
+    border-radius: 5px;
+    font-family: "Genos", sans-serif;
+
     transition: 0.25s;
 
   }
+  
   .title {
     font-family: "Audiowide", sans-serif;
     font-weight: 400;
@@ -255,12 +258,31 @@ p {
   }
 
   .container {
-    margin: 5em;
+    margin: 3em;
     padding: 25px;
     border: 8px solid #c02020;
-    border-radius: 2px;
+    border-radius: 20px;
     animation: neon-effect-box 1s cubic-bezier(0.94, 0.46, 0.52, 1.16) infinite
       alternate;
+  }
+  .container1 label {
+    font-weight: 400;
+
+    font-size: 16px;
+    color: #016012;
+  }
+
+  .container1 {
+    margin: 3em;
+    padding: 25px;
+    border: 8px solid #c02020;
+    border-radius: 20px;
+    animation: neon-effect-box 1s cubic-bezier(0.94, 0.46, 0.52, 1.16) infinite
+      alternate;
+  }
+  .container1 button{
+    position: relative;
+    left: 40%;
   }
 
   @keyframes neon-effect-box {

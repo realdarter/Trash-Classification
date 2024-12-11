@@ -12,6 +12,14 @@ app = Flask(__name__)
 def index():
     return render_template('frontend.html')
 
+@app.route('/quiz')
+def quiz():
+    return render_template('quiz.html')
+
+@app.route('/guide')
+def guide():
+    return render_template('guide.html')
+
 @app.route('/takeImage', methods=['POST'])
 def takeImage():
     if 'image' not in request.files:
@@ -21,9 +29,10 @@ def takeImage():
     print(predictImage)
     prediction = predictImage(image)
     print(prediction)
-    predict, confidence = prediction[0], prediction[1]
+    predict, confidence = prediction[0][0], prediction[1]
     # predict, confidence = "Card", "20"
-
+    predict = predict.replace("'", "")
+    print("PREDICTION: ",predict)
     return render_template('result.html', predicted_class=predict, confidence=confidence)
 
     # return prediction

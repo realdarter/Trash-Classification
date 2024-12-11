@@ -11,8 +11,10 @@
   <div class="container">
     <h1>Prediction Result</h1>
     <p><strong>Predicted Class:</strong> {{ predicted_class }}</p>
-    <p><strong>Confidence:</strong> {{ confidence }}%</p>
-    <a class="button" href="/">Back to Upload</a>
+    <div class="content">
+      <img src="/static/res/{{ predicted_class | lower }}-trash.png" alt="Predicted Class Image">
+      <a class="button" href="/">Back to Upload</a>
+  </div>
   </div>
 </body>
 </html>

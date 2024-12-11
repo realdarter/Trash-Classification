@@ -1,5 +1,7 @@
+@import url("https://fonts.googleapis.com/css2?family=Audiowide&family=Genos:ital,wght@0,100..900;1,100..900&display=swap");
+
 body {
-    font-family: Arial, sans-serif;
+    font-family: "Genos", sans-serif;
     background: linear-gradient(135deg, #34a0a4, #76c893);
     color: #fff;
     text-align: center;
@@ -18,14 +20,19 @@ body {
     box-shadow: 0 10px 20px rgba(0, 0, 0, 0.5);
   }
   h1 {
-    font-size: 2.5rem;
+    font-size: 3rem;
     margin-bottom: 1rem;
   }
   p {
-    font-size: 1.2rem;
+    font-size: 1.5rem;
+  }
+  .content {
+    display: flex;
+    flex-direction: column; /* Ensure vertical stacking */
+    align-items: center;
   }
   .button {
-    margin-top: 20px;
+    margin-top: 20px; /* Ensure space between image and button */
     text-decoration: none;
     padding: 10px 20px;
     color: #9d0208;
@@ -40,4 +47,11 @@ body {
   .button:hover {
     background: #9d0208;
     color: #fff;
+  }
+  img {
+    max-width: 250px;
+    border: 5px solid #4CAF50;
+    border-radius: 10px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    margin-bottom: 20px; /* Add space below the image */
   }
