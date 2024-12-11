@@ -7,3 +7,7 @@ https://www.kaggle.com/datasets/asdasdasasdas/garbage-classification
 The frontend will use HTML, Javascript, CSS
 
 The backend will use Python
+
+# Start Project
+1. run `python trashThingBackend/server.py` to start the server
+2. Go to http://127.0.0.1:5000/
