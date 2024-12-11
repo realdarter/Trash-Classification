@@ -35,8 +35,5 @@ def takeImage():
     print("PREDICTION: ",predict)
     return render_template('result.html', predicted_class=predict, confidence=confidence)
 
-    # return prediction
-    # return "RAHHHH"
-
 if __name__ == '__main__':
     app.run(debug=True)
