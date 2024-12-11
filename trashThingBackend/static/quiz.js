@@ -2,37 +2,114 @@
     var colors = ['#16a085', '#27ae60', '#2c3e50', '#f39c12', '#e74c3c', '#9b59b6', '#FB6964', "#472E32", "#FF4136", "#39CCCC", "#BDBB99", "#77B1A9", "#73A857"];
     var username = '';
     var myColor;
-    var all_questions = [{
-        question_string: "Javascript is _________ language.",
-        choices: {
-            correct: "Scripting",
-            wrong: ["Programming", "Application", "None of These"]
-        }
-    }, {
-        question_string: "JavaScript is ______ Side Scripting Language.",
-        choices: {
-            correct: "Browser",
-            wrong: ["Server", "ISP", "None of These"]
-        }
-    }, {
-        question_string: "Which HTML attribute is used to define inline styles?",
-        choices: {
-            correct: "style",
-            wrong: ["font", "class", "styles"]
-        }
-    }, {
-        question_string: 'What does CSS stand for?',
-        choices: {
-            correct: "Cascading Style Sheets",
-            wrong: ["Computer Style Sheets", "Colorful Style Sheets", "Creative Style Sheets"]
-        }
-    }, {
-        question_string: 'Who is making the Web standards?',
-        choices: {
-            correct: "W3C",
-            wrong: ["Mozilla", "Microsoft", "Google"]
-        }
-    }];
+    var all_questions = [
+		{
+			question_string: "Which of these items can be recycled in most curbside programs?",
+			choices: {
+				correct: "Aluminum cans",
+				wrong: ["Plastic bags", "Pizza boxes with grease", "Ceramic plates"]
+			}
+		},
+		{
+			question_string: "Where should you dispose of broken glass?",
+			choices: {
+				correct: "Wrapped in paper and placed in the trash",
+				wrong: ["Recycle bin", "Compost bin", "Hazardous waste facility"]
+			}
+		},
+		{
+			question_string: "Can plastic bottle caps be recycled along with the bottle?",
+			choices: {
+				correct: "Yes, but only if tightly screwed onto the bottle",
+				wrong: ["No", "Always separately", "Only if they are made of the same plastic"]
+			}
+		},
+		{
+			question_string: "Which type of waste should NEVER go into a compost bin?",
+			choices: {
+				correct: "Meat scraps",
+				wrong: ["Vegetable peels", "Eggshells", "Coffee grounds"]
+			}
+		},
+		{
+			question_string: "What’s the correct way to dispose of an old microwave?",
+			choices: {
+				correct: "E-waste collection center",
+				wrong: ["Recycle bin", "Landfill", "Compost bin"]
+			}
+		},
+		{
+			question_string: "How should shredded paper be disposed of?",
+			choices: {
+				correct: "In a paper bag before recycling",
+				wrong: ["Directly in the recycle bin", "In the trash", "Compost bin"]
+			}
+		},
+		{
+			question_string: "Can you recycle cardboard with food residue on it (e.g., cheese from a pizza box)?",
+			choices: {
+				correct: "No",
+				wrong: ["Yes", "Only in compost", "Only if rinsed"]
+			}
+		},
+		{
+			question_string: "What do you do with empty aerosol cans?",
+			choices: {
+				correct: "Recycle if completely empty",
+				wrong: ["Throw in the trash", "Compost them", "Take to hazardous waste center"]
+			}
+		},
+		{
+			question_string: "Can juice cartons with a plastic spout be recycled?",
+			choices: {
+				correct: "Yes, but spouts must be removed",
+				wrong: ["No", "Always together", "Only in certain facilities"]
+			}
+		},
+		{
+			question_string: "Where should you dispose of old medication?",
+			choices: {
+				correct: "Take it to a pharmacy or special disposal site",
+				wrong: ["Flush it", "Throw it in the trash", "Compost it"]
+			}
+		},
+		{
+			question_string: "What happens if you recycle items with food residue?",
+			choices: {
+				correct: "It can contaminate the entire batch of recyclables",
+				wrong: ["It will still be recycled", "It gets cleaned at the recycling center", "Nothing happens"]
+			}
+		},
+		{
+			question_string: "Which item should NOT go into the recycling bin?",
+			choices: {
+				correct: "Plastic utensils",
+				wrong: ["Glass jars", "Paper", "Aluminum foil (clean)"]
+			}
+		},
+		{
+			question_string: "What is the best way to dispose of batteries?",
+			choices: {
+				correct: "Take them to a hazardous waste facility",
+				wrong: ["Throw them in the trash", "Recycle them", "Bury them"]
+			}
+		},
+		{
+			question_string: "Can Styrofoam (expanded polystyrene) be recycled curbside?",
+			choices: {
+				correct: "No",
+				wrong: ["Yes", "Only if cleaned", "Only in certain regions"]
+			}
+		},
+		{
+			question_string: "How should you dispose of cooking oil?",
+			choices: {
+				correct: "Take it to a designated recycling center",
+				wrong: ["Pour it down the drain", "Throw it in the trash", "Compost it"]
+			}
+		}
+	];
+	
 
     function changeColor() {
         myColor = colors[Math.floor(Math.random() * colors.length)];
