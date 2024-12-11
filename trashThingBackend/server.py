@@ -1,11 +1,11 @@
 from flask import Flask, render_template, request, jsonify
 import sys
 import os
-import test
+from test import *
 # Add the train_model folder to the Python module search path
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '../train_model')))
 
-from test import predictImage  # Import predictImage from test.py
+#from test import predictImage  # Import predictImage from test.py
 app = Flask(__name__)
 
 @app.route('/')
@@ -18,6 +18,7 @@ def takeImage():
         return jsonify({"no image"}), 400
     image = request.files['image']
     # hopefully returns a tuple that includes the predicted classification and the percent.
+    print(predictImage)
     prediction = predictImage(image)
     print(prediction)
     predict, confidence = prediction[0], prediction[1]

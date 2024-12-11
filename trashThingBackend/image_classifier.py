@@ -140,6 +140,7 @@ def check_if_model_exists(path):
 
 
 def load_model(path='saved_models', filename='model.pth'):
+    print("Model Path: " + path)
     if not check_if_model_exists(path):
         print("Model doesnt exist cant load")
 

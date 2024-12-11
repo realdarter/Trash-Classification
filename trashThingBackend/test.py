@@ -12,7 +12,7 @@ def choose_image():
     )
     return img_path
 
-model_dir = 'saved_models/save1'
+model_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), 'saved_models/save1'))
 
 args = create_args(
         num_epochs=2,
@@ -26,6 +26,8 @@ args = create_args(
         repetition_penalty=1.0
         )
 # basically using the while loop. May not work if image path is different from the image itself.
+
+model, epoch, classes = load_model(model_dir)
+
 def predictImage(image):
     return predict_images(image, model=model, classes=classes, args=args)
-model, epoch, classes = load_model(model_dir)
